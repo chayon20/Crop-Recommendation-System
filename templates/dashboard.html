@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - CropRecSys</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { background: #f8fafc; }
+    .card { border-radius: 12px; box-shadow: 0 6px 18px rgba(20,20,20,0.06); }
+    .sensor-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 16px; margin-bottom: 20px; }
+    .sensor-card { padding: 18px; text-align: center; border-radius: 16px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); background: white; }
+    .sensor-icon { font-size: 1.6rem; margin-bottom: 6px; display: block; }
+    label { display:block; font-weight:bold; margin-bottom:6px; color:#333; }
+    input { width: 100%; padding: 10px; text-align:center; font-weight:bold; border-radius:12px; border:2px solid #ccc; background:#fff; }
+    .chart-wrap { background:#fff; border-radius:16px; box-shadow:0 6px 15px rgba(0,0,0,0.08); padding:16px; margin-top:20px; }
+    #latest-pred { font-weight: bold; font-size: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">🌱CropRecSys
+ </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
+          <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+          <li class="nav-item"><a class="nav-link text-warning" href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Latest Prediction Bar Chart -->
+    <div class="chart-wrap mb-3">
+      <h5>Top 50 Crop Predictions</h5>
+      <canvas id="predChart" height="100"></canvas>
+    </div>
+
+    <!-- Latest Info -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="card text-white bg-success">
+          <div class="card-body">
+            <h5 class="card-title">Latest Prediction</h5>
+            <p id="latest-pred">—</p>
+            <p class="small text-white-50" id="latest-time">—</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card bg-light">
+          <div class="card-body">
+            <h5 class="card-title">Latest Readings</h5>
+            <div id="latest-readings">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Cards Grid -->
+    <div class="sensor-grid">
+      <div class="sensor-card" style="background:#e8f5e9;">
+        <span class="sensor-icon">🟢</span>
+        <label for="N">Nitrogen (N)</label>
+        <input type="number" id="N" readonly>
+      </div>
+      <div class="sensor-card" style="background:#f3e5f5;">
+        <span class="sensor-icon">🟣</span>
+        <label for="P">Phosphorus (P)</label>
+        <input type="number" id="P" readonly>
+      </div>
+      <div class="sensor-card" style="background:#fff3e0;">
+        <span class="sensor-icon">🟠</span>
+        <label for="K">Potassium (K)</label>
+        <input type="number" id="K" readonly>
+      </div>
+      <div class="sensor-card" style="background:#ffebee;">
+        <span class="sensor-icon">🌡️</span>
+        <label for="temperature">Temperature (°C)</label>
+        <input type="number" id="temperature" readonly>
+      </div>
+      <div class="sensor-card" style="background:#ede7f6;">
+        <span class="sensor-icon">💦</span>
+        <label for="humidity">Humidity (%)</label>
+        <input type="number" id="humidity" readonly>
+      </div>
+      <div class="sensor-card" style="background:#e0f7fa;">
+        <span class="sensor-icon">⚗️</span>
+        <label for="ph">pH</label>
+        <input type="number" id="ph" readonly>
+      </div>
+      <div class="sensor-card" style="background:#ffe0b2;">
+        <span class="sensor-icon">🌧️</span>
+        <label for="rainfall">Rainfall (mm)</label>
+        <input type="number" id="rainfall" readonly>
+      </div>
+    </div>
+
+    <!-- Single Live Chart for Sensors -->
+    <div class="chart-wrap">
+      <canvas id="liveChart" height="200"></canvas>
+    </div>
+
+    <!-- Recent Table -->
+    <div class="card p-3 mt-3">
+      <h6>Recent readings</h6>
+      <div style="overflow:auto; max-height:300px;">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th><th>time</th><th>N</th><th>P</th><th>K</th>
+              <th>temp</th><th>humidity</th><th>ph</th><th>rain</th><th>crop</th>
+            </tr>
+          </thead>
+          <tbody id="recent-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart + Dashboard Logic -->
+  <script>
+    const API = "/api/latest";
+    const POLL_MS = 5000;
+    const MAX_POINTS = 60;
+    const fields = ["N","P","K","temperature","humidity","ph","rainfall"];
+    const dataSeries = { N:[], P:[], K:[], temperature:[], humidity:[], ph:[], rainfall:[] };
+    const labels = [];
+
+    // Live sensor chart
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type:'line',
+      data: { 
+        labels, 
+        datasets: fields.map((f, i) => ({
+          label: f,
+          data: [],
+          borderWidth: 2,
+          tension: 0.3,
+          borderColor: ["#28a745","#6f42c1","#fd7e14","#dc3545","#17a2b8","#20c997","#ffc107"][i],
+          backgroundColor: "rgba(0,0,0,0)"
+        }))
+      },
+      options: { responsive:true, interaction:{mode:'index', intersect:false}, scales:{ y:{beginAtZero:false} }, plugins:{ legend:{position:'bottom'} } }
+    });
+
+    // Prediction bar chart (last 50)
+    const predCtx = document.getElementById('predChart').getContext('2d');
+    const predChart = new Chart(predCtx, {
+      type: "bar",
+      data: { labels: [], datasets: [{ data: [], backgroundColor:"#28a745" }] },
+      options: { plugins:{ legend:{display:false} } }
+    });
+
+    function fmt(v,d=2){ const n=Number(v); return isFinite(n)?n.toFixed(d):""; }
+
+    function updateCards(r){
+      fields.forEach(f=>document.getElementById(f).value = fmt(r[f], (f==='temperature'||f==='humidity')?1:2));
+    }
+
+    function pushData(r){
+      labels.push(new Date(r.created_at||Date.now()).toLocaleTimeString());
+      fields.forEach(f=>dataSeries[f].push(Number(r[f])));
+      if(labels.length>MAX_POINTS){ 
+        labels.shift(); 
+        fields.forEach(f=>dataSeries[f].shift()); 
+      }
+      chart.data.labels = labels;
+      chart.data.datasets.forEach((ds,i)=>ds.data=dataSeries[fields[i]]);
+      chart.update();
+    }
+
+    function updatePredChart(rows){
+      const last50 = rows.slice(0,50);
+      const counts = {};
+      last50.forEach(r=>counts[r.predicted_crop]=(counts[r.predicted_crop]||0)+1);
+      predChart.data.labels = Object.keys(counts);
+      predChart.data.datasets[0].data = Object.values(counts);
+      predChart.update();
+    }
+
+    function updateUI(rows){
+      if(!rows.length) return;
+      const latest = rows[0];
+      document.getElementById("latest-pred").innerText = latest.predicted_crop;
+      document.getElementById("latest-time").innerText = new Date(latest.created_at).toLocaleString();
+      document.getElementById("latest-readings").innerHTML = `
+        N:${latest.N}, P:${latest.P}, K:${latest.K}<br>
+        Temp:${latest.temperature}°C, Hum:${latest.humidity}%<br>
+        pH:${latest.ph}, Rain:${latest.rainfall}mm
+      `;
+      updateCards(latest);
+      pushData(latest);
+      updatePredChart(rows);
+
+      // Table
+      const tbody = document.getElementById("recent-table");
+      tbody.innerHTML = "";
+      rows.forEach((r,i)=>{
+        tbody.innerHTML += `<tr>
+          <td>${i+1}</td><td>${new Date(r.created_at).toLocaleString()}</td>
+          <td>${r.N}</td><td>${r.P}</td><td>${r.K}</td>
+          <td>${r.temperature}</td><td>${r.humidity}</td>
+          <td>${r.ph}</td><td>${r.rainfall}</td>
+          <td><span class="badge bg-info text-dark">${r.predicted_crop}</span></td>
+        </tr>`;
+      });
+    }
+
+    async function fetchLatest(){
+      try{
+        const res = await fetch(API);
+        const data = await res.json();
+        updateUI(data);
+      } catch(e){ console.error("Fetch error:", e); }
+    }
+
+    window.onload = ()=>{
+      fetchLatest();
+      setInterval(fetchLatest, POLL_MS);
+    }
+  </script>
+</body>
+</html>

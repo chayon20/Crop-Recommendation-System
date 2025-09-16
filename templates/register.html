@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Register</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+        background: linear-gradient(to right, #d4edda, #ffffff);
+        min-height: 100vh;
+    }
+    .card {
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #28a745, #218838);
+        color: #fff;
+        font-weight: bold;
+        font-size: 1.5rem;
+        text-align: center;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        padding: 1rem 0;
+    }
+    .btn-primary {
+        background: #28a745;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-header">
+            Create Account
+          </div>
+          <div class="card-body p-4">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, msg in messages %}
+                  <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" enctype="multipart/form-data">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input name="name" class="form-control" placeholder="Enter your full name" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input name="email" type="email" class="form-control" placeholder="Enter your email" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Address</label>
+                <input name="address" class="form-control" placeholder="Your address">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Occupation</label>
+                <input name="occupation" class="form-control" placeholder="Your occupation">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Profile Photo</label>
+                <input type="file" name="profile_photo" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required>
+              </div>
+              <button class="btn btn-primary w-100">Register</button>
+            </form>
+
+            <p class="mt-3 text-center">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
