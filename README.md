@@ -1,6 +1,6 @@
 # 🌾 Intelligent Crop Recommendation System
 
-A **Machine Learning & IoT-integrated crop recommendation system** built with **Flask**, **Random Forest**, and **ESP32-based sensors**.  
+**Machine Learning & IoT-integrated crop recommendation system** built with **Flask**, **Random Forest**, and **ESP32-based sensors**.  
 This system predicts the most suitable crop for cultivation based on soil nutrients (N, P, K), pH, temperature, humidity, and rainfall, providing **real-time recommendations** to farmers.
 
 ---
