@@ -75,7 +75,9 @@ The system integrates IoT sensors with a machine learning model:
 - **pH Sensor** – measures soil acidity  
 - **DHT22 Sensor** – measures temperature & humidity  
 - **Rainfall Sensor** – measures precipitation levels  
-- **Power supply & wiring** – for continuous operation  
+- **Power supply & wiring** – for continuous operation
+
+---
 
 **Project Demo Video:**  
 <a href="https://www.youtube.com/watch?v=CQg7m_8CALg" target="_blank">
